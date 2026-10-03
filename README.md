@@ -32,6 +32,17 @@ kubectl get svc -n agentgateway-system  # grab the LoadBalancer IP
 
 Point your AI app at the gateway IP on port 80.
 
+### Setup options
+
+`scripts/setup.sh` skips any tool that is already on `PATH` (OpenTofu, kind, k9s, cloud-provider-kind), so machines provisioned with Homebrew or apt are left alone. Two environment variables tune the rest:
+
+| Variable | Effect |
+|---|---|
+| `ABOX_KUBECONFIG=~/.kube/abox.config` | Write the cluster kubeconfig to a dedicated file instead of merging it into `~/.kube/config` and switching the current context. Export the same `KUBECONFIG` in any shell that talks to the cluster. |
+| `ABOX_SKIP_ALIASES=1` | Do not touch shell rc files. By default the script asks before appending the `k`, `tf` and `kk` aliases and warns if they would shadow existing ones. |
+
+On macOS with Docker Desktop, `cloud-provider-kind` needs root to install host routes; if LoadBalancer Services stay `<pending>`, re-launch it with `sudo` in its own terminal. OrbStack and Colima route to containers directly and usually do not need this.
+
 ## How it works
 
 ```

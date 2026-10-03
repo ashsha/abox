@@ -38,3 +38,9 @@ variable "bootstrap_revision" {
   type        = number
   default     = 1
 }
+
+variable "kubeconfig_path" {
+  description = "Where kind writes the cluster kubeconfig. Empty means kind's default, which merges into $KUBECONFIG or ~/.kube/config and switches the current context. Set to a dedicated file to leave the main kubeconfig untouched. scripts/setup.sh wires ABOX_KUBECONFIG here."
+  type        = string
+  default     = ""
+}
