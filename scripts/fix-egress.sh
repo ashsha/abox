@@ -47,7 +47,10 @@ apply_fix() {
 }
 
 # verify_cluster probes raw TCP egress from every node of a kind cluster. It
-# deliberately avoids DNS so a failure means routing, not resolution.
+# deliberately avoids DNS so a failure means routing, not resolution. The
+# timeout runs inside the node: kindest/node is Debian and always ships GNU
+# timeout, whereas macOS hosts do not, and a missing host binary would read
+# as a blocked network.
 verify_cluster() {
   local cluster="$1" nodes node failed=0
 
@@ -58,7 +61,7 @@ verify_cluster() {
   fi
 
   for node in ${nodes}; do
-    if timeout 5 docker exec "${node}" bash -c '(exec 3<>/dev/tcp/1.1.1.1/53)' 2>/dev/null; then
+    if docker exec "${node}" timeout 5 bash -c '(exec 3<>/dev/tcp/1.1.1.1/53)' 2>/dev/null; then
       log "${node}: egress OK"
     else
       log "${node}: NO EGRESS -- image pulls will fail"

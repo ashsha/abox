@@ -234,13 +234,20 @@ else
 fi
 
 if [[ -n "${CPK_BIN}" ]]; then
-  nohup "${CPK_BIN}" > /tmp/cloud-provider-kind.log 2>&1 &
+  # On macOS cloud-provider-kind sees containers as remote and defaults to
+  # port-mapping tunnels, which need root. OrbStack routes the kind subnet to
+  # the host directly, so the tunnels are unnecessary and disabling them lets
+  # the provider run unprivileged; the LoadBalancer IP is then reachable as
+  # is. Docker Desktop has no such route and still needs sudo.
+  CPK_ARGS=()
+  if [[ "${PLATFORM_OS}" = "darwin" ]] \
+     && docker info --format '{{.OperatingSystem}}' 2>/dev/null | grep -qi orbstack; then
+    CPK_ARGS+=(--enable-lb-port-mapping=false)
+    log "OrbStack detected, running cloud-provider-kind without port-mapping tunnels"
+  fi
+  nohup "${CPK_BIN}" "${CPK_ARGS[@]}" > /tmp/cloud-provider-kind.log 2>&1 &
   log "cloud-provider-kind started (pid $!)"
-  if [[ "${PLATFORM_OS}" = "darwin" ]]; then
-    # Docker Desktop keeps container networks in a VM, so cloud-provider-kind
-    # needs root to install host routes and exits with "please run this again
-    # with sudo" otherwise. Runtimes that route to containers from the host
-    # (OrbStack, Colima with gvproxy, Podman) do not need it.
+  if [[ "${PLATFORM_OS}" = "darwin" && ${#CPK_ARGS[@]} -eq 0 ]]; then
     log "  Note: on macOS, if LoadBalancer Services stay <pending> or unreachable,"
     log "  check /tmp/cloud-provider-kind.log and re-launch in its own terminal:"
     log "    sudo ${CPK_BIN}"

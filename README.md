@@ -41,7 +41,7 @@ Point your AI app at the gateway IP on port 80.
 | `ABOX_KUBECONFIG=~/.kube/abox.config` | Write the cluster kubeconfig to a dedicated file instead of merging it into `~/.kube/config` and switching the current context. Export the same `KUBECONFIG` in any shell that talks to the cluster. |
 | `ABOX_SKIP_ALIASES=1` | Do not touch shell rc files. By default the script asks before appending the `k`, `tf` and `kk` aliases and warns if they would shadow existing ones. |
 
-On macOS with Docker Desktop, `cloud-provider-kind` needs root to install host routes; if LoadBalancer Services stay `<pending>`, re-launch it with `sudo` in its own terminal. OrbStack and Colima route to containers directly and usually do not need this.
+On macOS the script detects OrbStack and starts `cloud-provider-kind` with `--enable-lb-port-mapping=false`, which runs unprivileged because the host can reach the kind subnet directly. With Docker Desktop the provider needs root for its port-mapping tunnels; if LoadBalancer Services stay `<pending>`, re-launch it with `sudo` in its own terminal.
 
 ## How it works
 
